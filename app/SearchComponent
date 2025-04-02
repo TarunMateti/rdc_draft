@@ -1,0 +1,52 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Search, Loader } from "lucide-react";
+
+export default function SearchComponent({ onSearch }) {
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+
+  // Debounce effect to delay search execution
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300); // Adjust debounce time if needed
+
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  useEffect(() => {
+    if (debouncedSearch !== "") {
+      handleSearch();
+    }
+  }, [debouncedSearch]);
+
+  const handleSearch = async () => {
+    setLoading(true);
+    try {
+      await onSearch(debouncedSearch);
+    } catch (error) {
+      console.error("Search Error:", error);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="flex gap-2">
+      <Input
+        className="flex-1"
+        placeholder="Search data..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+      />
+      <Button variant="outline" onClick={handleSearch} disabled={loading}>
+        {loading ? <Loader size={18} className="animate-spin" /> : <Search size={18} />}
+      </Button>
+    </div>
+  );
+}
